@@ -1,0 +1,70 @@
+
+services:
+  db:
+    image: postgres:16.4
+    container_name: postgres-multi
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  authentication:
+    build:
+      context: "C:/Users/felip/OneDrive/Documents/Pragma/CrediYa/authentication"
+      dockerfile: ../deployment/authentication/Dockerfile
+    container_name: authentication
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      SERVER_PORT: ${AUTH_SERVER_PORT}
+      SPRING_R2DBC_URL: r2dbc:postgresql://db:5432/${AUTH_DB_NAME}
+      SPRING_R2DBC_USERNAME: ${POSTGRES_USER}
+      SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD}
+
+
+      SPRING_FLYWAY_ENABLED: "false"
+
+      SPRING_APP_POSTGRESQL_HOST: db
+      SPRING_APP_POSTGRESQL_PORT: 5432
+      SPRING_APP_POSTGRESQL_DATABASE: ${AUTH_DB_NAME}
+      SPRING_APP_POSTGRESQL_USERNAME: ${POSTGRES_USER}
+      SPRING_APP_POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD}
+
+      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:${AUTH_SERVER_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+    ports: ["${AUTH_SERVER_PORT}:${AUTH_SERVER_PORT}"]
+
+  requests:
+    build:
+      context: "C:/Users/felip/OneDrive/Documents/Pragma/CrediYa/RequestsService"
+      dockerfile: ../deployment/application/Dockerfile
+    container_name: loan-application
+    depends_on:
+      db: { condition: service_healthy }
+      authentication: { condition: service_started }
+    environment:
+
+      SERVER_PORT: ${REQ_SERVER_PORT}
+      SPRING_R2DBC_URL: r2dbc:postgresql://db:5432/${REQ_DB_NAME}
+      SPRING_R2DBC_USERNAME: ${POSTGRES_USER}
+      SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD}
+
+      SPRING_FLYWAY_ENABLED: "false"
+
+
+      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:${REQ_SERVER_PORT}
+      CUSTOMER_SERVICE_BASE_URL: http://authentication:${AUTH_SERVER_PORT}
+    ports: ["${REQ_SERVER_PORT}:${REQ_SERVER_PORT}"]
+
+volumes:
+  pgdata:

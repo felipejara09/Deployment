@@ -1,0 +1,10 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Env y secretos
+.env
+*.env
+**/.env
+.env.local
+.env.development
+.env.production
