@@ -18,7 +18,7 @@ services:
 
   authentication:
     build:
-      context: "C:/Users/felip/OneDrive/Documents/Pragma/CrediYa/authentication"
+      context: "C:/Users/santi/Documents/felipe/Crediya/AuthenticationService"
       dockerfile: ../deployment/authentication/Dockerfile
     container_name: authentication
     depends_on:
@@ -41,7 +41,7 @@ services:
 
   requests:
     build:
-      context: "C:/Users/felip/OneDrive/Documents/Pragma/CrediYa/RequestService"
+      context: "C:/Users/santi/Documents/felipe/Crediya/RequestService"
       dockerfile: ../deployment/application/Dockerfile
     container_name: loan-application
     depends_on:
@@ -59,10 +59,32 @@ services:
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+
       SQS_QUEUE_URL: ${SQS_QUEUE_URL}
+      CAPACITY_QUEUE_URL: ${CAPACITY_QUEUE_URL}
+      CAPACITY_RESULT_URL: ${CAPACITY_RESULT_URL}
+      AWS_APP_SQS_STATUS_QUEUE_URL: ${AWS_APP_SQS_STATUS_QUEUE_URL}
+
+      SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
+      AWS_APP_SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
 
 
     ports: ["${REQ_SERVER_PORT}:${REQ_SERVER_PORT}"]
+
+  reports:
+      build:
+        context: "C:/Users/santi/Documents/felipe/Crediya/ReportService"
+        dockerfile: ../deployment/reports/Dockerfile
+      container_name: report-service
+      environment:
+        SERVER_PORT: 8082
+        AWS_REGION: ${AWS_REGION}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+        AWS_APP_DYNAMODB_TABLE: ${AWS_APP_DYNAMODB_TABLE}
+        AWS_APP_SQS_STATUS_QUEUE_URL: ${AWS_APP_SQS_STATUS_QUEUE_URL}
+        CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:8082
+      ports: [ "8082:8082" ]
 
 volumes:
   pgdata:

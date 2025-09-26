@@ -7,7 +7,8 @@ VALUES
   (1, 'Pending Review', 'The application has been received and is awaiting evaluation.'),
   (2, 'Approved',       'The loan application has been approved'),
   (3, 'Rejected',       'The loan application has been rejected'),
-  (4, 'In Process',     'The loan is currently being processed for disbursement')
+  (4, 'In Process',     'The loan is currently being processed for disbursement'),
+  (5, 'Manual Review', 'sd')
 ON CONFLICT (id_state) DO NOTHING;
 
 -- Tipos de crédito (forzando IDs)
